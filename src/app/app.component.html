@@ -1,0 +1,43 @@
+<header class="header">
+  <div class="container header__org">
+    <h1 class="header__title">Currency Exchange</h1>
+    <div class="header__currencies-cont">
+      <p *ngFor="let currency of headerCurrencies" class="header__currency">UAH for {{currency.query.from}}: {{currency.result}}</p>
+    </div>
+  </div>
+</header>
+<body class="body">
+  <div class="container body__org">
+    <div class="body__exchange">
+      <div *ngIf="mainCurrency" class="body__currencyRate">
+        <h2>{{mainCurrency}}</h2>
+      </div>
+      <div class="body__currencies-wrap">
+        <div class="body__currency">
+          <input type="number" class="body__currency-amount" 
+          #firstAmount (change)="dataProcessing(1, firstAmount.value, firstCurrency.value, secondCurrency.value)">
+          <select name="currency1" #firstCurrency 
+          (change)="dataProcessing(2, secondAmount.value, secondCurrency.value, firstCurrency.value, firstAmount.value)">
+            <option value="UAH">UAH</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="KZT">KZT</option>
+            <option value="CNY">CNY</option>
+          </select>
+        </div>
+        <div class="body__currency">
+          <input type="number" class="body__currency-amount" 
+          #secondAmount (change)="dataProcessing(2, secondAmount.value, secondCurrency.value, firstCurrency.value)">
+          <select name="currency2" #secondCurrency
+          (change)="dataProcessing(1, firstAmount.value, firstCurrency.value, secondCurrency.value, secondAmount.value)">
+            <option value="UAH">UAH</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="KZT">KZT</option>
+            <option value="CNY">CNY</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
