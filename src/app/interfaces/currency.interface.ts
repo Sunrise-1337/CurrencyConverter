@@ -1,4 +1,4 @@
-export interface headCurrency {
+export interface currencyInterface {
   result: string;
   success: boolean;
   info: {

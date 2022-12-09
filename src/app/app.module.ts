@@ -3,16 +3,23 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http'
 
 import { AppComponent } from './app.component';
+import { HeaderComponent } from './components/header/header.component';
+import { CurrencyConverterComponent } from './components/currency-converter/currency-converter.component';
+import { RateApiService } from './services/rate-api.service';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    HeaderComponent,
+    CurrencyConverterComponent,
   ],
   imports: [
     BrowserModule,
-    HttpClientModule
+    HttpClientModule,
+    ReactiveFormsModule,
   ],
-  providers: [],
+  providers: [RateApiService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

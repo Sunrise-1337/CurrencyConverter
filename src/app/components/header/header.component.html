@@ -1,0 +1,8 @@
+<header class="header">
+  <div class="container header__org">
+      <h1 class="header__title">Currency Exchange</h1>
+      <div class="header__currencies-cont">
+        <p *ngFor="let currency of headerCurrencies" class="header__currency">UAH for {{currency.query.from}}: {{currency.result}}</p>
+      </div>
+  </div>
+</header>
