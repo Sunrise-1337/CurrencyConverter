@@ -1,36 +1,27 @@
-<div class="body">
-    <div class="container body__org">
-        <div class="body__exchange">
-          <div *ngIf="notification" class="body__currencyRate">
-            <h2>{{notification}}</h2>
-          </div>
-          <form (ngSubmit)="onSubmit(firstCurrency.value, secondCurrency.value, firstAmount.value, secondAmount.value)" [formGroup]="form" class="body__currencies-wrap">
-            <div class="body__currency">
-              <input formControlName="amount1" type="number" class="body__currency-amount" 
-              #firstAmount (change)="mode = 1">
-              <select formControlName="currency1" name="currency1" #firstCurrency 
-              (change)="mode = 2">
+<div class="converter__exchange">
+    <form (ngSubmit)="onSubmit(currencyForm)" class="converter__form" [formGroup]="currencyForm">
+        <div class="converter__currency">
+            <input formControlName="firstCurrencyAmount" type="number" class="converter__currency-amount" 
+            #firstCurrencyAmount>
+            <select formControlName="firstCurrency" #firstCurrency>
                 <option value="UAH">UAH</option>
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
                 <option value="KZT">KZT</option>
                 <option value="CNY">CNY</option>
-              </select>
-            </div>
-            <div class="body__currency">
-              <input formControlName="amount2" type="number" class="body__currency-amount" 
-              #secondAmount (change)="mode = 2">
-              <select formControlName="currency2" name="currency2" #secondCurrency
-              (change)="mode = 1">
-                <option value="UAH">UAH</option>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="KZT">KZT</option>
-                <option value="CNY">CNY</option>
-              </select>
-            </div>
-            <button type="submit">Convert</button>
-          </form>
+            </select>
         </div>
-    </div>
+        <div class="converter__currency">
+            <input formControlName="secondCurrencyAmount" type="number" class="converter__currency-amount" 
+            #secondCurrencyAmount>
+            <select formControlName="secondCurrency" #firstCurrency>
+                <option value="UAH">UAH</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="KZT">KZT</option>
+                <option value="CNY">CNY</option>
+            </select>
+        </div>
+        <button type="submit">Convert</button>
+    </form>
 </div>

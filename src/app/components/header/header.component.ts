@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RateApiService } from 'src/app/services/rate-api.service';
 import { currencyInterface } from 'src/app/interfaces/currency.interface';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -8,13 +9,15 @@ import { currencyInterface } from 'src/app/interfaces/currency.interface';
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit {
-  headerCurrencies: currencyInterface[] = [];
+  euroToUAH$!: Observable<currencyInterface>;
+  dollarToUAH$!: Observable<currencyInterface>;
 
   constructor(private rateApiService: RateApiService){
   }
 
   ngOnInit(): void {
-    this.headerCurrencies = this.rateApiService.getHeaderCurrencies()
+    this.euroToUAH$ = this.rateApiService.getCurrency('EUR', 'UAH', 1)
+    this.dollarToUAH$ = this.rateApiService.getCurrency('USD', 'UAH', 1)
   }
 
 }

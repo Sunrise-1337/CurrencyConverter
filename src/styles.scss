@@ -1,7 +1,8 @@
 @import './reset.scss';
 
 .container{
-    width: 1240px;
+    max-width: 1240px;
+    width: 100%;
     padding: 10px 20px;
     display: flex;
 }

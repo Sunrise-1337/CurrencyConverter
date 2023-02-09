@@ -1,59 +1,64 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
+import { first, map, Observable } from 'rxjs';
 import { RateApiService } from 'src/app/services/rate-api.service';
-import { currencyInterface } from 'src/app/interfaces/currency.interface';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-currency-converter',
   templateUrl: './currency-converter.component.html',
   styleUrls: ['./currency-converter.component.scss']
 })
-export class CurrencyConverterComponent implements OnInit{
-  notification: string = "";
-  mode: number = 0;
-  form!: FormGroup;
+export class CurrencyConverterComponent implements OnInit {
+  currencyForm!: FormGroup;
 
-  @ViewChild('firstAmount')
-  firstInput!: ElementRef<HTMLInputElement>;
-  @ViewChild('secondAmount')
-  secondInput!: ElementRef<HTMLInputElement>;
+  prevFirstAmount!: number;
+  prevSecondAmount!: number;
+  prevFirstCurrency: string = 'USD';
+  prevSecondCurrency: string = 'UAH';
 
-  constructor(private rateApiService: RateApiService){
-  }
+  constructor(private currencyService: RateApiService) { }
 
   ngOnInit(): void {
-    this.form = new FormGroup({
-      amount1: new FormControl(),
-      amount2: new FormControl(),
-      currency1: new FormControl('', Validators.required),
-      currency2: new FormControl('', Validators.required)
+    this.currencyForm = new FormGroup({
+      firstCurrencyAmount: new FormControl(),
+      firstCurrency: new FormControl(this.prevFirstCurrency),
+      secondCurrencyAmount: new FormControl(),
+      secondCurrency: new FormControl(this.prevSecondCurrency),
     })
   }
 
-  onSubmit(currency: string, currency2: string, amount: string, amount2: string =''){
-    if (currency !== currency2 && currency && currency2){
-      if (this.mode === 1 && +amount > 0) {
-        this.rateApiService.getCurrency(currency, currency2, +amount).subscribe((res: currencyInterface) => {
-          if (res.success){
-            this.secondInput.nativeElement.value = res.result
-            this.notification = `Currency rate: ${res.info.rate} →`;
-          }
-        })
-      } else if (this.mode === 2 && +amount2 > 0) {
-        this.rateApiService.getCurrency(currency2, currency, +amount2).subscribe((res: currencyInterface) => {
-          if (res.success){
-            this.firstInput.nativeElement.value = res.result;
-            this.notification = `← Currency rate: ${res.info.rate}`;
-          }
-        })
-      } else {
-        this.notification = `There is no value to convert`;  
-      }
-    } else if (currency && currency2){
-      this.notification = `Same currency`;
-    } else {
-      this.notification = 'The currency is not defined'
-    }
-  }
-}
+  onSubmit(form: FormGroup) {
+    let currency1 = form.controls['firstCurrency'].value,
+        currency2 = form.controls['secondCurrency'].value,
+        amount1 = form.controls['firstCurrencyAmount'].value,
+        amount2 = form.controls['secondCurrencyAmount'].value;
 
+    this.currencyService
+      .getCurrency(currency1, currency2, 1)
+      .pipe(
+        first(), 
+        map(res => res.info.rate)
+      )
+      .subscribe(res => {
+        if (amount1 !== this.prevFirstAmount 
+            || currency1 !== this.prevFirstCurrency 
+            || currency2 !== this.prevSecondCurrency)
+          {
+          this.prevFirstAmount = amount1;
+          this.prevSecondAmount = amount2;
+          this.prevFirstCurrency = currency1;
+          this.prevSecondCurrency = currency2;
+
+          form.controls['secondCurrencyAmount'].setValue((amount1 * res).toFixed(2))
+        }
+
+        if (amount2 !== this.prevSecondAmount){
+          this.prevFirstAmount = amount2 / res;
+          this.prevSecondAmount = amount2;
+
+          form.controls['firstCurrencyAmount'].setValue(this.prevFirstAmount.toFixed(2))
+        }
+      })
+  }
+
+}
