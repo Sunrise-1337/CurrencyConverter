@@ -27,52 +27,50 @@ export class CurrencyConverterComponent implements OnInit {
     })
   }
 
+  private isFirstToSecond(amount: number, currencyOne: string, currencyTwo: string): boolean {
+    return amount !== this.prevFirstAmount || currencyOne !== this.prevFirstCurrency || currencyTwo !== this.prevSecondCurrency
+  }
+
   onSubmit(form: FormGroup) {
-    let currency1 = form.controls['firstCurrency'].value,
-        currency2 = form.controls['secondCurrency'].value,
-        amount1 = form.controls['firstCurrencyAmount'].value,
-        amount2 = form.controls['secondCurrencyAmount'].value;
+    const {firstCurrency, 
+          secondCurrency, 
+          firstCurrencyAmount, 
+          secondCurrencyAmount} = this.currencyForm.value;
 
     // First option
     this.currencyService
-      .getCurrency(currency1, currency2, 1)
+      .getCurrency(firstCurrency, secondCurrency, 1)
       .pipe(
         first(), 
         map(res => res.info.rate)
       )
       .subscribe(res => {
-        if (amount1 !== this.prevFirstAmount 
-            || currency1 !== this.prevFirstCurrency 
-            || currency2 !== this.prevSecondCurrency)
-          {
-          this.prevFirstAmount = amount1;
-          this.prevSecondAmount = amount2;
-          this.prevFirstCurrency = currency1;
-          this.prevSecondCurrency = currency2;
+        if (this.isFirstToSecond(firstCurrencyAmount, firstCurrency, secondCurrency)){
+          this.prevFirstAmount = firstCurrencyAmount;
+          this.prevSecondAmount = secondCurrencyAmount;
+          this.prevFirstCurrency = firstCurrency;
+          this.prevSecondCurrency = secondCurrency;
 
-          form.controls['secondCurrencyAmount'].setValue((amount1 * res).toFixed(2))
+          form.controls['secondCurrencyAmount'].setValue((firstCurrencyAmount * res).toFixed(2))
         }
 
-        if (amount2 !== this.prevSecondAmount){
-          this.prevFirstAmount = amount2 / res;
-          this.prevSecondAmount = amount2;
+        if (secondCurrencyAmount !== this.prevSecondAmount){
+          this.prevFirstAmount = secondCurrencyAmount / res;
+          this.prevSecondAmount = secondCurrencyAmount;
 
           form.controls['firstCurrencyAmount'].setValue(this.prevFirstAmount.toFixed(2))
         }
       })
 
     // Second option
-    // if (amount1 !== this.prevFirstAmount 
-    //   || currency1 !== this.prevFirstCurrency 
-    //   || currency2 !== this.prevSecondCurrency)
-    // {
-    //   this.prevFirstAmount = amount1;
-    //   this.prevSecondAmount = amount2;
-    //   this.prevFirstCurrency = currency1;
-    //   this.prevSecondCurrency = currency2;
+    // if (this.isFirstToSecond(firstCurrencyAmount, firstCurrency, secondCurrency)) {
+    //   this.prevFirstAmount = firstCurrencyAmount;
+    //   this.prevSecondAmount = secondCurrencyAmount;
+    //   this.prevFirstCurrency = firstCurrency;
+    //   this.prevSecondCurrency = secondCurrency;
 
     //   this.currencyService
-    //     .getCurrency(currency1, currency2, amount1)
+    //     .getCurrency(firstCurrency, secondCurrency, firstCurrencyAmount)
     //     .pipe(
     //       first(), 
     //       map(res => +res.result)
@@ -82,16 +80,16 @@ export class CurrencyConverterComponent implements OnInit {
     // }       
 
 
-    // if (amount2 !== this.prevSecondAmount){
+    // if (secondCurrencyAmount !== this.prevSecondAmount){
     //   this.currencyService
-    //     .getCurrency(currency2, currency1, amount2)
+    //     .getCurrency(secondCurrency, firstCurrency, secondCurrencyAmount)
     //     .pipe(
     //       first(), 
     //       map(res => +res.result)
     //     ).subscribe(res => {
     //       form.controls['firstCurrencyAmount'].setValue(res.toFixed(2))
     //       this.prevFirstAmount = +res.toFixed(2);
-    //       this.prevSecondAmount = amount2;
+    //       this.prevSecondAmount = secondCurrencyAmount;
     //       form.controls['firstCurrencyAmount'].setValue(this.prevFirstAmount.toFixed(2))
     //     })
     // }
