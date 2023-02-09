@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { first, map, Observable } from 'rxjs';
+import { first, map } from 'rxjs';
 import { RateApiService } from 'src/app/services/rate-api.service';
 
 @Component({
