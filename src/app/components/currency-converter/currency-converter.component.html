@@ -1,5 +1,5 @@
 <div class="converter__exchange">
-    <form (ngSubmit)="onSubmit(currencyForm)" class="converter__form" [formGroup]="currencyForm">
+    <form class="converter__form" [formGroup]="currencyForm">
         <div class="converter__currency">
             <input formControlName="firstCurrencyAmount" type="number" class="converter__currency-amount" 
             #firstCurrencyAmount>
@@ -22,6 +22,5 @@
                 <option value="CNY">CNY</option>
             </select>
         </div>
-        <button type="submit">Convert</button>
     </form>
 </div>

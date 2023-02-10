@@ -7,7 +7,6 @@
 
     &__form{
         display: flex;
-        flex-wrap: wrap;
         justify-content: center;
         gap: 10%;
 
@@ -28,13 +27,13 @@
 
         input{
             height: 35px;
-            width: 200px;
+            max-width: 200px;
             font-size: 25px;
         }
 
         select{
             height: 30px;
-            width: 80px;
+            max-width: 80px;
             text-align: center;
             font-size: 17px;
         }
@@ -52,5 +51,15 @@
             font-family: Arial, Helvetica, sans-serif;
             font-weight: bold;
         }
+    }
+}
+
+@media (max-width: 767px){
+    .converter__form{
+        flex-wrap: wrap;
+    }
+
+    .converter__currency{
+        margin-top: 50px;
     }
 }

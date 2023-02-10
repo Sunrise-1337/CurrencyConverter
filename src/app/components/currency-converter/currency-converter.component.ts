@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
-import { first, map } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { debounceTime, first, map, Subscription } from 'rxjs';
 import { RateApiService } from 'src/app/services/rate-api.service';
 
 @Component({
@@ -8,91 +8,58 @@ import { RateApiService } from 'src/app/services/rate-api.service';
   templateUrl: './currency-converter.component.html',
   styleUrls: ['./currency-converter.component.scss']
 })
-export class CurrencyConverterComponent implements OnInit {
+export class CurrencyConverterComponent implements OnInit, OnDestroy {
   currencyForm!: FormGroup;
 
-  prevFirstAmount!: number;
-  prevSecondAmount!: number;
-  prevFirstCurrency: string = 'USD';
-  prevSecondCurrency: string = 'UAH';
+  firstCurrencySub!: Subscription;
+  firstCurrencyAmountSub!: Subscription;
+  secondCurrencySub!: Subscription;
+  secondCurrencyAmountSub!: Subscription;
 
   constructor(private currencyService: RateApiService) { }
 
   ngOnInit(): void {
     this.currencyForm = new FormGroup({
       firstCurrencyAmount: new FormControl(),
-      firstCurrency: new FormControl(this.prevFirstCurrency),
+      firstCurrency: new FormControl('USD'),
       secondCurrencyAmount: new FormControl(),
-      secondCurrency: new FormControl(this.prevSecondCurrency),
+      secondCurrency: new FormControl('UAH'),
+    })
+
+    this.firstCurrencyAmountSub = this.currencyForm.controls['firstCurrencyAmount'].valueChanges.pipe(debounceTime(350)).subscribe(newValue => {
+      this.convertValue(this.currencyForm.controls['firstCurrency'].value, 
+      this.currencyForm.controls['secondCurrency'].value, newValue, this.currencyForm.controls['secondCurrencyAmount'])
+    })
+
+    this.secondCurrencyAmountSub = this.currencyForm.controls['secondCurrencyAmount'].valueChanges.pipe(debounceTime(350)).subscribe(newValue => {
+      this.convertValue(this.currencyForm.controls['secondCurrency'].value, 
+      this.currencyForm.controls['firstCurrency'].value, newValue, this.currencyForm.controls['firstCurrencyAmount'])
+    })
+
+    this.firstCurrencySub = this.currencyForm.controls['firstCurrency'].valueChanges.subscribe(newValue => {
+      this.convertValue(newValue, this.currencyForm.controls['secondCurrency'].value, 
+      this.currencyForm.controls['firstCurrencyAmount'].value, this.currencyForm.controls['secondCurrencyAmount'])
+    })
+
+    this.secondCurrencySub = this.currencyForm.controls['secondCurrency'].valueChanges.subscribe(newValue => {
+      this.convertValue(this.currencyForm.controls['firstCurrency'].value, newValue,
+      this.currencyForm.controls['firstCurrencyAmount'].value, this.currencyForm.controls['secondCurrencyAmount'])
     })
   }
 
-  private isFirstToSecond(amount: number, currencyOne: string, currencyTwo: string): boolean {
-    return amount !== this.prevFirstAmount || currencyOne !== this.prevFirstCurrency || currencyTwo !== this.prevSecondCurrency
-  }
-
-  onSubmit(form: FormGroup) {
-    const {firstCurrency, 
-          secondCurrency, 
-          firstCurrencyAmount, 
-          secondCurrencyAmount} = this.currencyForm.value;
-
-    // First option
+  convertValue(firstCurrency: string, secondCurrency: string, amount: number, controlToChange: AbstractControl) {
     this.currencyService
-      .getCurrency(firstCurrency, secondCurrency, 1)
-      .pipe(
-        first(), 
-        map(res => res.info.rate)
-      )
-      .subscribe(res => {
-        if (this.isFirstToSecond(firstCurrencyAmount, firstCurrency, secondCurrency)){
-          this.prevFirstAmount = firstCurrencyAmount;
-          this.prevSecondAmount = secondCurrencyAmount;
-          this.prevFirstCurrency = firstCurrency;
-          this.prevSecondCurrency = secondCurrency;
-
-          form.controls['secondCurrencyAmount'].setValue((firstCurrencyAmount * res).toFixed(2))
-        }
-
-        if (secondCurrencyAmount !== this.prevSecondAmount){
-          this.prevFirstAmount = secondCurrencyAmount / res;
-          this.prevSecondAmount = secondCurrencyAmount;
-
-          form.controls['firstCurrencyAmount'].setValue(this.prevFirstAmount.toFixed(2))
-        }
-      })
-
-    // Second option
-    // if (this.isFirstToSecond(firstCurrencyAmount, firstCurrency, secondCurrency)) {
-    //   this.prevFirstAmount = firstCurrencyAmount;
-    //   this.prevSecondAmount = secondCurrencyAmount;
-    //   this.prevFirstCurrency = firstCurrency;
-    //   this.prevSecondCurrency = secondCurrency;
-
-    //   this.currencyService
-    //     .getCurrency(firstCurrency, secondCurrency, firstCurrencyAmount)
-    //     .pipe(
-    //       first(), 
-    //       map(res => +res.result)
-    //     ).subscribe(res => {
-    //       form.controls['secondCurrencyAmount'].setValue(res.toFixed(2))
-    //     })
-    // }       
-
-
-    // if (secondCurrencyAmount !== this.prevSecondAmount){
-    //   this.currencyService
-    //     .getCurrency(secondCurrency, firstCurrency, secondCurrencyAmount)
-    //     .pipe(
-    //       first(), 
-    //       map(res => +res.result)
-    //     ).subscribe(res => {
-    //       form.controls['firstCurrencyAmount'].setValue(res.toFixed(2))
-    //       this.prevFirstAmount = +res.toFixed(2);
-    //       this.prevSecondAmount = secondCurrencyAmount;
-    //       form.controls['firstCurrencyAmount'].setValue(this.prevFirstAmount.toFixed(2))
-    //     })
-    // }
+    .getCurrency(firstCurrency, secondCurrency, amount)
+    .pipe(
+      first(), 
+      map(res => res.result)
+    ).subscribe(res => controlToChange.setValue(res, {emitEvent: false}))
   }
 
+  ngOnDestroy(): void {
+    this.firstCurrencySub.unsubscribe()
+    this.firstCurrencyAmountSub.unsubscribe()
+    this.secondCurrencySub.unsubscribe()
+    this.secondCurrencyAmountSub.unsubscribe()
+  }
 }
