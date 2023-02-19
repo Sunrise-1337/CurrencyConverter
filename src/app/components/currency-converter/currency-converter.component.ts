@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
-import { debounceTime, first, map, Subscription } from 'rxjs';
+import { debounceTime, first, map, Subject, takeUntil } from 'rxjs';
 import { RateApiService } from 'src/app/services/rate-api.service';
 
 @Component({
@@ -11,10 +11,7 @@ import { RateApiService } from 'src/app/services/rate-api.service';
 export class CurrencyConverterComponent implements OnInit, OnDestroy {
   currencyForm!: FormGroup;
 
-  firstCurrencySub!: Subscription;
-  firstCurrencyAmountSub!: Subscription;
-  secondCurrencySub!: Subscription;
-  secondCurrencyAmountSub!: Subscription;
+  destroy$: Subject<boolean> = new Subject<boolean>()
 
   constructor(private currencyService: RateApiService) { }
 
@@ -26,22 +23,22 @@ export class CurrencyConverterComponent implements OnInit, OnDestroy {
       secondCurrency: new FormControl('UAH'),
     })
 
-    this.firstCurrencyAmountSub = this.currencyForm.controls['firstCurrencyAmount'].valueChanges.pipe(debounceTime(350)).subscribe(newValue => {
+    this.currencyForm.controls['firstCurrencyAmount'].valueChanges.pipe(debounceTime(1000), takeUntil(this.destroy$)).subscribe(newValue => {
       this.convertValue(this.currencyForm.controls['firstCurrency'].value, 
       this.currencyForm.controls['secondCurrency'].value, newValue, this.currencyForm.controls['secondCurrencyAmount'])
     })
 
-    this.secondCurrencyAmountSub = this.currencyForm.controls['secondCurrencyAmount'].valueChanges.pipe(debounceTime(350)).subscribe(newValue => {
+    this.currencyForm.controls['secondCurrencyAmount'].valueChanges.pipe(debounceTime(1000), takeUntil(this.destroy$)).subscribe(newValue => {
       this.convertValue(this.currencyForm.controls['secondCurrency'].value, 
       this.currencyForm.controls['firstCurrency'].value, newValue, this.currencyForm.controls['firstCurrencyAmount'])
     })
 
-    this.firstCurrencySub = this.currencyForm.controls['firstCurrency'].valueChanges.subscribe(newValue => {
+    this.currencyForm.controls['firstCurrency'].valueChanges.pipe(takeUntil(this.destroy$)).subscribe(newValue => {
       this.convertValue(newValue, this.currencyForm.controls['secondCurrency'].value, 
       this.currencyForm.controls['firstCurrencyAmount'].value, this.currencyForm.controls['secondCurrencyAmount'])
     })
 
-    this.secondCurrencySub = this.currencyForm.controls['secondCurrency'].valueChanges.subscribe(newValue => {
+    this.currencyForm.controls['secondCurrency'].valueChanges.pipe(takeUntil(this.destroy$)).subscribe(newValue => {
       this.convertValue(this.currencyForm.controls['firstCurrency'].value, newValue,
       this.currencyForm.controls['firstCurrencyAmount'].value, this.currencyForm.controls['secondCurrencyAmount'])
     })
@@ -57,9 +54,7 @@ export class CurrencyConverterComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.firstCurrencySub.unsubscribe()
-    this.firstCurrencyAmountSub.unsubscribe()
-    this.secondCurrencySub.unsubscribe()
-    this.secondCurrencyAmountSub.unsubscribe()
+    this.destroy$.next(true)
+    this.destroy$.unsubscribe()
   }
 }
